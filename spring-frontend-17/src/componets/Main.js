@@ -2,7 +2,7 @@ import * as React from 'react';
 import {useState} from 'react';
 import {Box, Button, CircularProgress, Typography} from "@mui/material";
 import {DataGrid} from "@mui/x-data-grid";
-import {useGetAllBooksQuery} from "../api/base-api";
+import {useDeleteBookMutation, useGetAllBooksQuery} from "../api/base-api";
 import CreateBookDialog from "./CreateBookDialog";
 import {Link} from "react-router-dom";
 
@@ -21,15 +21,28 @@ const columns = [
 
 export default function Main() {
     const {data: response, isSuccess} = useGetAllBooksQuery();
+    const [deleteBook] = useDeleteBookMutation();
     const [state, setState] = useState({
         bookId: null,
-        isDialogOpen: false
+        isDialogOpen: false,
+        selectedBooks: []
     });
     const handleCreateBook = () => {
         setState({
             ...state,
             isDialogOpen: true
         })
+    }
+
+    const handleDeleteBook = () => {
+        if (state.selectedBooks.length !== 0) {
+
+            deleteBook({bookIds: state.selectedBooks})
+            setState({
+                ...state,
+                selectedBooks: []
+            })
+        }
     }
 
     const handleCloseDialog = () => {
@@ -51,6 +64,12 @@ export default function Main() {
                 <Box sx={{height: 450, mt: 2}}>
                     <DataGrid rows={response}
                               columns={columns}
+                              checkboxSelection
+                              onSelectionModelChange={(newSelectionModel) => {
+                                  setState({...state, selectedBooks: newSelectionModel})
+                              }}
+                              selectionModel={state.selectedBooks}
+                              disableSelectionOnClick
                               hideFooter
                               disableColumnSelector
                               disableColumnFilter
@@ -62,6 +81,14 @@ export default function Main() {
                 variant="contained"
                 onClick={handleCreateBook}>
                 Create book
+            </Button>
+
+            <Button
+                sx={{mt: 2, ml: 2}}
+                variant="contained"
+                disabled={state.selectedBooks.length === 0}
+                onClick={handleDeleteBook}>
+                Delete selected
             </Button>
             <CreateBookDialog open={state.isDialogOpen}
                               onClose={handleCloseDialog}
