@@ -36,7 +36,6 @@ export default function Main() {
 
     const handleDeleteBook = () => {
         if (state.selectedBooks.length !== 0) {
-
             deleteBook({bookIds: state.selectedBooks})
             setState({
                 ...state,
